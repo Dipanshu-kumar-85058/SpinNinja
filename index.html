@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spin It | Match & Roll Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #07070a;
+  --surface: rgba(22, 22, 34, 0.65);
+  --border: rgba(255, 255, 255, 0.1);
+  --text: #f0f0f5;
+  --muted: #7a7a9d;
+  --accent: #f0c93a;
+  --accent-glow: rgba(240, 201, 58, 0.3);
+  --danger: #ff5f6d;
+  --secondary: #6a5ce8;
+  --r: 16px;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: radial-gradient(circle at top, #141424 0%, var(--bg) 80%);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── HEADER ── */
+header { text-align: center; padding: 20px 10px 10px; flex-shrink: 0; }
+h1 {
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(2rem, 4vw, 2.5rem);
+  letter-spacing: -1px; color: transparent;
+  background: linear-gradient(90deg, #fff, var(--accent));
+  -webkit-background-clip: text; margin-bottom: 5px;
+}
+.sub { color: var(--muted); font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; font-weight: 600;}
+
+/* ── DASHBOARD LAYOUT (Improved for Laptop/Desktop) ── */
+.dashboard {
+  flex: 1; display: grid; gap: 20px; padding: 10px 20px 30px;
+  grid-template-columns: 320px minmax(400px, 1fr) 300px;
+  max-width: 1500px; margin: 0 auto; width: 100%;
+}
+
+/* Laptop / Small Desktop scaling */
+@media (max-width: 1150px) {
+  .dashboard { grid-template-columns: 280px 1fr; }
+  .panel-history { grid-column: 1 / -1; min-height: 200px; }
+}
+
+/* Mobile scaling */
+@media (max-width: 768px) {
+  .dashboard { display: flex; flex-direction: column; }
+  .arena-panel { min-height: 350px; }
+}
+
+/* ── PANELS ── */
+.panel {
+  background: var(--surface); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border); border-radius: var(--r);
+  padding: 20px; display: flex; flex-direction: column; gap: 15px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+.panel-title {
+  font-size: .7rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted); display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+.panel-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── LISTS & INPUTS ── */
+.scroll-area { flex: 1; overflow-y: auto; padding-right: 5px; display: flex; flex-direction: column; gap: 8px; max-height: 350px;}
+.scroll-area::-webkit-scrollbar { width: 5px; }
+.scroll-area::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 5px; }
+
+.list-group { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.list-header { font-size: 0.85rem; color: var(--accent); font-weight: 600; }
+
+.opt-row { display: flex; align-items: center; gap: 8px; animation: slideIn .2s ease; }
+@keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
+
+.opt-input {
+  flex: 1; padding: 12px 14px; background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: .95rem;
+  outline: none; transition: all .2s;
+}
+.opt-input:focus { border-color: var(--accent); background: rgba(0,0,0,0.5); }
+
+.del-btn {
+  width: 36px; height: 36px; flex-shrink: 0; background: transparent; border: none;
+  border-radius: 8px; color: var(--muted); cursor: pointer; transition: all .2s; font-size: 1.1rem;
+}
+.del-btn:hover { color: var(--danger); background: rgba(255, 95, 109, 0.15); }
+
+.add-btn {
+  padding: 12px; background: rgba(255,255,255,0.03); border: 1px dashed var(--muted);
+  border-radius: 8px; color: var(--text); cursor: pointer; font-weight: 500; transition: all .2s;
+}
+.add-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+
+/* ── SETTINGS TABS ── */
+.mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mode-btn {
+  padding: 10px; border: 1px solid var(--border); border-radius: 8px;
+  background: rgba(0,0,0,0.2); color: var(--muted); font-family: 'DM Sans', sans-serif;
+  font-size: .8rem; font-weight: 600; cursor: pointer; transition: all .2s;
+}
+.mode-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
+.mode-btn.active { border-color: var(--accent); background: var(--accent-glow); color: var(--accent); }
+
+.sub-settings {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid var(--border);
+}
+.sub-settings label { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+.radio-group { display: flex; gap: 15px; font-size: 0.85rem; }
+
+/* ── ARENA & TRACKS ── */
+.arena-panel { flex: 1; display: flex; flex-direction: column; }
+#arena {
+  flex: 1; position: relative; overflow: hidden; border-radius: 12px;
+  background: rgba(0,0,0,0.6); border: 1px inset rgba(255,255,255,0.05);
+  box-shadow: inset 0 10px 30px rgba(0,0,0,0.8);
+  display: flex; flex-direction: column; justify-content: center; gap: 15px; padding: 20px 0;
+  min-height: 250px;
+}
+
+#selector-line {
+  position: absolute; left: 50%; top: 0; bottom: 0; width: 4px;
+  background: var(--accent); z-index: 10; transform: translateX(-50%);
+  box-shadow: 0 0 15px var(--accent); border-radius: 2px; pointer-events: none;
+}
+
+.track-container { width: 100%; height: 75px; overflow: hidden; position: relative; display: flex; align-items: center; }
+.track {
+  display: flex; align-items: center; gap: 15px; padding: 0 50vw;
+  will-change: transform; position: absolute; left: 0; height: 100%;
+}
+.track-item {
+  flex-shrink: 0; padding: 15px 30px; border-radius: 12px;
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.3rem;
+  color: #fff; text-align: center; white-space: nowrap;
+  border: 2px solid rgba(255,255,255,.2); background: rgba(255,255,255,0.1);
+}
+
+.spin-btn {
+  padding: 22px; background: linear-gradient(135deg, #f0c93a, #e09a3c);
+  border: none; border-radius: 12px; color: #0b0b12; font-family: 'Syne', sans-serif;
+  font-size: 1.3rem; font-weight: 800; cursor: pointer; transition: all .2s;
+  box-shadow: 0 8px 25px rgba(240, 201, 58, 0.4); text-transform: uppercase; margin-top: 15px;
+}
+.spin-btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(240, 201, 58, 0.6); }
+.spin-btn:disabled { background: var(--muted); box-shadow: none; cursor: not-allowed; opacity: 0.7; }
+
+/* ── HISTORY ── */
+.history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 5px; max-height: 400px;}
+.history-item {
+  background: rgba(0,0,0,0.3); border-left: 3px solid var(--accent);
+  padding: 12px; border-radius: 6px; font-size: 0.9rem; animation: slideIn 0.3s ease;
+}
+.history-time { font-size: 0.75rem; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; font-weight: 600;}
+.history-result { font-weight: 600; color: var(--text); }
+
+/* ── 3D OVERLAY ── */
+#overlay3D {
+  position: fixed; inset: 0; z-index: 1000; background: rgba(7, 7, 10, 0.92);
+  backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.4s ease; perspective: 1200px;
+}
+#overlay3D.active { opacity: 1; pointer-events: all; }
+
+#winnerContainer { 
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; 
+  max-width: 1000px; padding: 20px; max-height: 70vh; overflow-y: auto;
+}
+.winner-card {
+  padding: 20px 40px; border-radius: 16px; font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: clamp(1.2rem, 3vw, 2.5rem); color: white; text-align: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5); transform: translateZ(-200px) scale(0.5) rotateX(20deg); opacity: 0;
+  border: 2px solid rgba(255,255,255,0.2);
+}
+#overlay3D.active .winner-card { animation: popOut 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+@keyframes popOut { 100% { transform: translateZ(50px) scale(1) rotateX(0deg); opacity: 1; } }
+
+.close-btn {
+  margin-top: 30px; padding: 15px 40px; border-radius: 30px; background: transparent;
+  border: 2px solid rgba(255,255,255,0.3); color: white; font-weight: 700; cursor: pointer;
+  transform: translateY(20px); opacity: 0; transition: all 0.3s; font-size: 1.1rem;
+}
+#overlay3D.active .close-btn { transform: translateY(0); opacity: 1; transition-delay: 0.8s; }
+.close-btn:hover { background: white; color: black; }
+
+#ccanvas { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+</style>
+</head>
+<body>
+
+<canvas id="ccanvas"></canvas>
+
+<div id="overlay3D">
+  <div style="font-family:'Syne'; color:var(--muted); letter-spacing:4px; margin-bottom:20px; text-transform:uppercase;" id="overlayTitle">Result</div>
+  <div id="winnerContainer"></div>
+  <button class="close-btn" id="closeOverlayBtn">Continue</button>
+</div>
+
+<header>
+  <h1>Spin It</h1>
+  <p class="sub">Dynamic Matchmaker & Roller</p>
+</header>
+
+<main class="dashboard">
+  
+  <aside class="panel">
+    <div class="panel-title">Settings</div>
+    <div class="mode-grid">
+      <button class="mode-btn active" data-mode="single">🎯 Pick One</button>
+      <button class="mode-btn" data-mode="multi">🎲 Pick Many</button>
+      <button class="mode-btn" data-mode="pair">🤝 Pair Up</button>
+      <button class="mode-btn" data-mode="eliminate">❌ Eliminate</button>
+    </div>
+
+    <div id="multiSettings" class="sub-settings" style="display: none;">
+      <label>Winners (1-3):</label>
+      <input type="number" id="multiCount" value="2" min="1" max="3" style="width: 60px; padding: 5px; border-radius: 5px; border: 1px solid var(--border); background: var(--bg); color: white; text-align: center;">
+    </div>
+
+    <div id="pairSettings" class="sub-settings" style="display: none;">
+      <label>Pairing Mode:</label>
+      <div class="radio-group">
+        <label><input type="radio" name="pairMode" value="single" checked> Single Pair</label>
+        <label><input type="radio" name="pairMode" value="all"> Pair All</label>
+      </div>
+    </div>
+    
+    <div class="list-group">
+      <div class="list-header" id="labelA">Options Pool</div>
+      <div class="scroll-area" id="listA"></div>
+      <button class="add-btn" onclick="addOption('A')">＋ Add Option</button>
+    </div>
+
+    <div class="list-group" id="groupB" style="display: none; border-top: 1px solid var(--border); padding-top: 15px;">
+      <div class="list-header" style="color: var(--secondary);">Match To (List B)</div>
+      <div class="scroll-area" id="listB"></div>
+      <button class="add-btn" onclick="addOption('B')">＋ Add Option</button>
+    </div>
+  </aside>
+
+  <section class="panel arena-panel">
+    <div class="panel-title">The Arena</div>
+    <div id="arena">
+      <div id="selector-line"></div>
+      <div style="color: var(--muted); text-align: center; width: 100%;">Ready to Roll</div>
+    </div>
+    <button class="spin-btn" id="spinBtn">ROLL NOW</button>
+  </section>
+
+  <aside class="panel panel-history">
+    <div class="panel-title">Spin History <button style="margin-left:auto; background:none; border:none; color:var(--muted); cursor:pointer; font-weight: bold;" onclick="clearHistory()">Clear</button></div>
+    <div class="history-list" id="historyList">
+      <div style="color: var(--muted); font-size: 0.9rem; text-align: center; margin-top: 20px;">No spins yet.</div>
+    </div>
+  </aside>
+
+</main>
+
+<script>
+const COLORS = ['#ff4757','#ffa502','#eccc68','#2ed573','#1e90ff','#5352ed','#ff7f50','#ff6b81','#7bed9f','#70a1ff'];
+
+let state = { A: [], B: [], mode: 'single', history: [], spinning: false };
+
+// DOM
+const listA_El = document.getElementById('listA');
+const listB_El = document.getElementById('listB');
+const groupB_El = document.getElementById('groupB');
+const labelA = document.getElementById('labelA');
+const arena = document.getElementById('arena');
+const spinBtn = document.getElementById('spinBtn');
+const historyList = document.getElementById('historyList');
+const overlay3D = document.getElementById('overlay3D');
+const overlayTitle = document.getElementById('overlayTitle');
+const winnerContainer = document.getElementById('winnerContainer');
+
+const multiSettings = document.getElementById('multiSettings');
+const multiCountInput = document.getElementById('multiCount');
+const pairSettings = document.getElementById('pairSettings');
+
+// Init Defaults
+['Alice', 'Bob', 'Charlie', 'Diana', 'Eve'].forEach(t => addOption('A', t));
+['Project X', 'Project Y', 'Project Z'].forEach(t => addOption('B', t));
+
+// ─── LIST MANAGEMENT ───
+function addOption(listName, text = '') {
+  const id = Date.now() + Math.random();
+  const color = COLORS[state[listName].length % COLORS.length];
+  state[listName].push({ id, text, color });
+  renderList(listName);
+}
+
+function removeOption(listName, id) {
+  state[listName] = state[listName].filter(o => o.id !== id);
+  renderList(listName);
+}
+
+function renderList(listName) {
+  const container = listName === 'A' ? listA_El : listB_El;
+  container.innerHTML = '';
+  state[listName].forEach((opt, i) => {
+    const row = document.createElement('div'); row.className = 'opt-row';
+    row.innerHTML = `
+      <div style="width:12px; height:12px; border-radius:50%; background:${opt.color};"></div>
+      <input type="text" class="opt-input" placeholder="Item ${i+1}" value="${opt.text}">
+      <button class="del-btn">✕</button>
+    `;
+    row.querySelector('input').addEventListener('input', e => opt.text = e.target.value);
+    row.querySelector('.del-btn').addEventListener('click', () => removeOption(listName, opt.id));
+    container.appendChild(row);
+  });
+}
+
+// ─── UI TOGGLES ───
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.mode = btn.dataset.mode;
+    
+    // Reset Settings UI
+    multiSettings.style.display = 'none';
+    pairSettings.style.display = 'none';
+    groupB_El.style.display = 'none';
+    labelA.textContent = 'Options Pool';
+
+    if (state.mode === 'multi') {
+      multiSettings.style.display = 'flex';
+    } else if (state.mode === 'pair') {
+      pairSettings.style.display = 'flex';
+      groupB_El.style.display = 'flex';
+      labelA.textContent = 'Match From (List A)';
+    }
+    
+    arena.innerHTML = '<div id="selector-line"></div><div style="color:var(--muted); text-align:center; width:100%;">Ready to Roll</div>';
+  });
+});
+
+// Clamp multi input 1-3
+multiCountInput.addEventListener('change', (e) => {
+  let val = parseInt(e.target.value);
+  if(val < 1) val = 1; if(val > 3) val = 3;
+  e.target.value = val;
+});
+
+// ─── SPIN LOGIC ───
+spinBtn.addEventListener('click', () => {
+  if (state.spinning) return;
+  
+  const activeA = state.A.filter(o => o.text.trim() !== '');
+  const activeB = state.B.filter(o => o.text.trim() !== '');
+
+  if (activeA.length < 2 && state.mode !== 'pair') { alert('You need at least 2 options!'); return; }
+  if (state.mode === 'pair' && (activeA.length < 1 || activeB.length < 1)) { alert('Both lists need at least 1 option to pair!'); return; }
+
+  state.spinning = true; spinBtn.disabled = true; spinBtn.textContent = 'ROLLING...';
+  arena.innerHTML = '<div id="selector-line"></div>'; // Clear arena
+
+  let winners = [];
+  let pairMode = document.querySelector('input[name="pairMode"]:checked').value;
+  
+  if (state.mode === 'pair') {
+    let shuffledA = shuffle([...activeA]);
+    let shuffledB = shuffle([...activeB]);
+    
+    if (pairMode === 'all') {
+      // Create as many pairs as possible
+      let limit = Math.min(shuffledA.length, shuffledB.length);
+      for(let i=0; i<limit; i++) winners.push([shuffledA[i], shuffledB[i]]);
+    } else {
+      winners = [[shuffledA[0], shuffledB[0]]];
+    }
+    
+    // Visual Spin only shows the FIRST pair
+    createTrack(activeA, winners[0][0], 0); 
+    createTrack(activeB, winners[0][1], 1);
+
+  } else if (state.mode === 'multi') {
+    let count = parseInt(multiCountInput.value);
+    count = Math.min(count, activeA.length); // Don't pick more than exist
+    winners = shuffle([...activeA]).slice(0, count);
+    
+    // Generate exactly 'count' number of tracks
+    winners.forEach((w, index) => createTrack(activeA, w, index));
+
+  } else {
+    // Single & Eliminate
+    winners = [activeA[Math.floor(Math.random() * activeA.length)]];
+    createTrack(activeA, winners[0], 0);
+  }
+
+  // End Spin and Show Cinematic
+  setTimeout(() => triggerCinematicReveal(winners), 5200);
+});
+
+function createTrack(pool, winner, index) {
+  const trackCont = document.createElement('div'); trackCont.className = 'track-container';
+  const track = document.createElement('div'); track.className = 'track';
+  
+  let spinItems = [];
+  for(let i=0; i<15; i++) spinItems.push(...shuffle([...pool]));
+  
+  const targetIndex = spinItems.length - 8;
+  spinItems[targetIndex] = winner;
+
+  spinItems.forEach((opt, idx) => {
+    const el = document.createElement('div'); el.className = 'track-item';
+    el.textContent = opt.text;
+    el.style.background = hexAlpha(opt.color, 0.3); el.style.borderColor = opt.color;
+    if(idx === targetIndex) el.dataset.winner = 'true';
+    track.appendChild(el);
+  });
+
+  trackCont.appendChild(track);
+  arena.appendChild(trackCont);
+
+  setTimeout(() => {
+    const winnerEl = track.querySelector('[data-winner="true"]');
+    if(!winnerEl) return;
+    const arenaCenter = arena.clientWidth / 2;
+    const winnerCenter = winnerEl.offsetLeft + (winnerEl.offsetWidth / 2);
+    
+    const duration = 4.5 + (index * 0.4); // Stagger stopping times
+    const jitter = (Math.random() - 0.5) * (winnerEl.offsetWidth * 0.5);
+    
+    track.style.transition = `transform ${duration}s cubic-bezier(0.1, 0.85, 0.15, 1)`;
+    track.style.transform = `translateX(${-(winnerCenter - arenaCenter) + jitter}px)`;
+  }, 50);
+}
+
+// ─── 3D REVEAL & HISTORY ───
+function triggerCinematicReveal(winners) {
+  winnerContainer.innerHTML = '';
+  let historyText = '';
+  let pairMode = document.querySelector('input[name="pairMode"]:checked')?.value;
+
+  if (state.mode === 'pair') {
+    overlayTitle.textContent = pairMode === 'all' ? "All Matches" : "Matched Pair";
+    overlayTitle.style.color = "var(--secondary)";
+    
+    winners.forEach((pair, i) => {
+       historyText += `${pair[0].text} 🤝 ${pair[1].text}${i < winners.length-1 ? ' | ' : ''}`;
+       winnerContainer.innerHTML += `
+        <div class="winner-card" style="background: rgba(106, 92, 232, 0.4); border-color: #6a5ce8; animation-delay: ${i*0.1}s">
+          ${pair[0].text} <br><span style="color:var(--accent); font-size:1.2rem">matched with</span><br> ${pair[1].text}
+        </div>`;
+    });
+    
+  } else if (state.mode === 'eliminate') {
+    overlayTitle.textContent = "Eliminated";
+    overlayTitle.style.color = "var(--danger)";
+    historyText = `❌ Eliminated: ${winners[0].text}`;
+    winnerContainer.innerHTML = `<div class="winner-card" style="background: rgba(255, 95, 109, 0.4); border-color: var(--danger);">${winners[0].text}</div>`;
+    removeOption('A', winners[0].id); // Delete from array
+    
+  } else {
+    overlayTitle.textContent = state.mode === 'multi' ? "Winners" : "Winner";
+    overlayTitle.style.color = "var(--text)";
+    historyText = winners.map(w => w.text).join(', ');
+    winners.forEach((w, i) => {
+      winnerContainer.innerHTML += `<div class="winner-card" style="background: ${hexAlpha(w.color, 0.5)}; border-color: ${w.color}; animation-delay: ${i*0.1}s">${w.text}</div>`;
+    });
+  }
+
+  addToHistory(historyText, state.mode);
+  overlay3D.classList.add('active');
+  
+  // Burst confetti using the color of the first winner (or purple for pairs)
+  const burstColor = state.mode === 'pair' ? '#6a5ce8' : winners[0].color;
+  if (state.mode !== 'eliminate') burst(burstColor);
+}
+
+function addToHistory(text, mode) {
+  const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  state.history.unshift({ text, time, mode });
+  renderHistory();
+}
+
+function renderHistory() {
+  if (state.history.length === 0) { historyList.innerHTML = '<div style="color:var(--muted); text-align:center; margin-top:20px;">No spins yet.</div>'; return; }
+  historyList.innerHTML = '';
+  state.history.forEach(h => {
+    let borderCol = h.mode === 'eliminate' ? 'var(--danger)' : (h.mode === 'pair' ? 'var(--secondary)' : 'var(--accent)');
+    historyList.innerHTML += `
+      <div class="history-item" style="border-left-color: ${borderCol};">
+        <div class="history-time">${h.time} • ${h.mode}</div>
+        <div class="history-result">${h.text}</div>
+      </div>
+    `;
+  });
+}
+
+function clearHistory() { state.history = []; renderHistory(); }
+
+document.getElementById('closeOverlayBtn').addEventListener('click', () => {
+  overlay3D.classList.remove('active');
+  state.spinning = false; spinBtn.disabled = false; spinBtn.textContent = 'ROLL NOW';
+});
+
+// ─── CONFETTI ENGINE ───
+const ccanvas = document.getElementById('ccanvas'); const cctx = ccanvas.getContext('2d');
+let particles = [];
+function burst(color) {
+  const cx = window.innerWidth / 2, cy = window.innerHeight * 0.3;
+  const pal = [color, '#fff', '#f0c93a', '#6a5ce8', '#ff4757'];
+  for (let i = 0; i < 150; i++) {
+    const a = Math.random() * Math.PI * 2, spd = 5 + Math.random() * 15;
+    particles.push({ x:cx, y:cy, vx: Math.cos(a)*spd, vy: Math.sin(a)*spd - 8, color: pal[Math.floor(Math.random() * pal.length)], w: 6+Math.random()*10, h: 4+Math.random()*6, rot: Math.random()*Math.PI*2, rs: (Math.random()-.5)*.4, life: 1, decay: .008 + Math.random()*.01 });
+  }
+  rafConfetti();
+}
+function rafConfetti() {
+  cctx.clearRect(0,0,ccanvas.width,ccanvas.height);
+  particles = particles.filter(p => p.life > 0);
+  particles.forEach(p => {
+    p.x+=p.vx; p.y+=p.vy; p.vy+=.4; p.rot+=p.rs; p.life-=p.decay;
+    cctx.save(); cctx.globalAlpha=Math.max(0,p.life); cctx.translate(p.x,p.y); cctx.rotate(p.rot);
+    cctx.fillStyle=p.color; cctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); cctx.restore();
+  });
+  if (particles.length) requestAnimationFrame(rafConfetti);
+}
+
+// Utils
+function shuffle(arr) { for (let i = arr.length-1; i>0; i--) { const j = Math.floor(Math.random()*(i+1)); [arr[i],arr[j]] = [arr[j],arr[i]]; } return arr; }
+function hexAlpha(hex, a) { if (!hex.startsWith('#')) return hex; const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16); return `rgba(${r},${g},${b},${a})`; }
+</script>
+</body>
+</html>
