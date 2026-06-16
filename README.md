@@ -1,6 +1,3 @@
-Here is the markdown code for the README.md file so you can easily copy and paste it directly into your GitHub repository:
-
-Markdown
 # 🎰 Spin It | Match & Roll Pro
 
 ![HTML5](https://img.shields.io/badge/html5-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white)
